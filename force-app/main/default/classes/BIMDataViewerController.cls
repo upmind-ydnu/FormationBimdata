@@ -4,6 +4,11 @@ global with sharing class BIMDataViewerController {
   public String modelId {get; set;}
   public String viewerToken {get; set;}
 
+  public String zoneUUID {get; set;}
+
+  public GICModel__c gicModel {get; set;}
+  public GICZone__c gicZone {get; set;}
+
   private String getViewerToken() {
     BIMDataAPI api = BIMDataAPI.new_session();
     api.cloudId = cloudId;
@@ -13,7 +18,15 @@ global with sharing class BIMDataViewerController {
   
   public BIMDataViewerController() {
     String recordId = ApexPages.currentPage().getParameters().get('id').escapeHtml4();
-    GICModel__c gicModel =  GICModelUtil.find(recordId);
+    String sObjectType = String.valueOf(((id)recordId).getSobjectType());
+
+    if (sObjectType == 'GICModel__c') {
+      gicModel =  GICModelUtil.find(recordId);
+    }else if (sObjectType == 'GICZone__c') {
+      gicZone = GICZoneUtil.find(recordId);
+      gicModel =  GICModelUtil.find(gicZone.GICModel__c);
+      zoneUUID = gicZone.uuid__c;
+    }
 
     BIMDataAPI api = BIMDataAPI.new_session();
     cloudId = gicModel.cloudId__c;

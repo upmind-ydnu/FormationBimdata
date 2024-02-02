@@ -18,6 +18,78 @@
       const projectId = '{!projectId}';
       const modelId = '{!modelId}';
       const viewerToken = '{!viewerToken}'
+      let zoneUUID = '{!zoneUUID}';
+      zoneUUID = '3wXhosKm99N8Q7p3fD23VO';
+
+      let viewerZones;
+      let api;
+      let model;
+      let structureData;
+      let modelStoreys;
+
+      function uuidGroupedByStorey(node) {
+        const storeys = [];
+        // Recursive helper function
+        function traverse(pnode) {
+          if (pnode.type === 'storey') {
+            storeys.push({
+              uuid: pnode.uuid,
+              children: pnode.children.map((child) => child.uuid),
+            });
+          }
+          pnode.children.forEach((child) => traverse(child));
+        }
+
+        traverse(node);
+        return storeys;
+      }
+
+      function countUuidByStorey(storeys, uuids) {
+        const storeysInfo = [];
+
+        storeys.forEach((storey) => {
+          // Count how many UUIDs in the uuids are in the storey's children
+          const uuidCountInStorey = uuids.reduce(
+            (count, uuid) => count + storey.children.includes(uuid),
+            0,
+          );
+
+          if (uuidCountInStorey > 0) {
+            storeysInfo.push({
+              storeyUUID: storey.uuid,
+              uuidCountInStorey,
+            });
+          }
+        });
+
+        return storeysInfo;
+      }
+
+      function findObjectByUUID(objects, uuid) {
+        return objects.find((object) => object.uuid === uuid);
+      }
+
+      const uuidsOfZone = (viewerZones, zoneUUID) => {
+        const zoneToHighlight = findObjectByUUID(viewerZones, zoneUUID);
+        return zoneToHighlight.spaces.map((space) => space.uuid);
+      };
+
+      const isPointInPolygon = (point, polygon) => {
+        const { x, y } = point;
+
+        let inside = false;
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          const { x: xi, y: yi } = polygon[i];
+          const { x: xj, y: yj } = polygon[j];
+
+          const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          if (intersect) {
+            inside = !inside;
+          }
+        }
+        return inside;
+      };
 
 
       const bimdataViewerConfig = {
@@ -104,7 +176,62 @@
         },
         ...bimdataViewerConfig
       });
-      const vm = bimdataViewer.mount("#viewer", customLayout);
+      const viewerInstance = await bimdataViewer.mount("#viewer", customLayout);
+
+      const viewer2d = viewerInstance.$viewer.globalContext.plugins.get('viewer2d')[0];
+
+      const handleZone = (_zoneUUID) => {
+        const storeys = structureData.flatMap((node) => uuidGroupedByStorey(node));
+        const zoneUUIDs = uuidsOfZone(viewerZones, _zoneUUID);
+        const storeysWithUuidsCount = countUuidByStorey(storeys, zoneUUIDs);
+        const selectStoreyUuid = storeysWithUuidsCount.sort((a, b) => b.uuidCountInStorey - a.uuidCountInStorey)[0].storeyUUID;
+        const currentStorey = modelStoreys.filter((storey) => storey.uuid === selectStoreyUuid)[0];
+
+        const getPointZones = (point) => {
+          const spaces = viewerInstance.$viewer.state.getObjectsByUuids(zoneUUIDs);
+          const shownSpaces = spaces.filter((space) => space.visible);
+          const spacesPoints = shownSpaces.map((object) => {
+            const id = object.id.toString();
+            return viewer2d.viewer.scene.objectsMap.get(id).getShape().getPath().points;
+          });
+          return spacesPoints.some((points) => isPointInPolygon(point, points));
+        };
+        // standardPlugin.setGetPointZonesFunction(getPointZones);
+        viewerInstance.$viewer.globalContext.localContexts.forEach((localContext) => {
+          localContext.selectStorey(currentStorey);
+        });
+        viewer2d.fitView(zoneUUIDs);
+        viewerInstance.$viewer.state.selectObjectsByUuids(zoneUUIDs);
+      };
+
+      const handleDeselect = () => {
+        const { selectedObjectsIds } = viewerInstance.$viewer.state;
+        viewerInstance.$viewer.state.deselectObjects(selectedObjectsIds);
+      };
+      
+      viewerInstance.$viewer.globalContext.hub.on('2d-model-loaded', async (event) => {
+        api = viewerInstance.$viewer.api.apiClient.modelApi;
+        model = await api.getModel(cloudId, event.model.id, projectId);
+        viewerZones = await api.getZones(cloudId, event.model.id, projectId);
+        modelStoreys = event.model.storeys;
+        async function fetchData(url) {
+          let data;
+          try {
+            const response = await fetch(url); // Replace with your API endpoint
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            data = await response.json(); // Parse the response as JSON
+          } catch (error) {
+            console.error('Error:', error);
+          }
+          return data;
+        }
+        structureData = await fetchData(model.structure_file);
+        if (zoneUUID) {
+          handleZone(zoneUUID);
+        }
+      });
 
     </script>
     <div style="height: 100vh;">

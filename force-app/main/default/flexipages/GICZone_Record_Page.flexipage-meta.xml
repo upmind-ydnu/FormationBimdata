@@ -133,8 +133,8 @@
         <name>main</name>
         <type>Region</type>
     </flexiPageRegions>
-    <masterLabel>GICModel Record Page</masterLabel>
-    <sobjectType>GICModel__c</sobjectType>
+    <masterLabel>GICZone Record Page</masterLabel>
+    <sobjectType>GICZone__c</sobjectType>
     <template>
         <name>flexipage:recordHomeSimpleViewTemplate</name>
     </template>
