@@ -3,9 +3,10 @@
     <fullName>z__c</fullName>
     <externalId>false</externalId>
     <label>z</label>
-    <length>10</length>
+    <precision>18</precision>
     <required>false</required>
+    <scale>8</scale>
     <trackTrending>false</trackTrending>
-    <type>Text</type>
+    <type>Number</type>
     <unique>false</unique>
 </CustomField>
