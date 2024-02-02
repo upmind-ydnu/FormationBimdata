@@ -18,5 +18,7 @@ system.debug(instance.createProjectToken());
 // => Récupération d'un token 
 
 
-
-
+// Loading des zones
+Id gicModelId = 'a005t0000091jmoAAA';
+GICModel__c model = GICModelUtil.find(gicModelId);
+GICModelUtil.loadZones(model.Id);

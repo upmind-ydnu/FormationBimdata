@@ -13,6 +13,7 @@ public class BIMDataAPI {
     Map<String, String> headers;
     public String cloudId;
     public String projectId;
+    public String modelId;
 
     class BimdataApiException extends Exception {}
 
@@ -170,5 +171,31 @@ public class BIMDataAPI {
         Map<String, Object> tokenMap = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
         return (String)tokenMap.get('token');
     }
+
+    
+    public List<Map<String,Object>> getZones() {
+        String token = createProjectToken();
+        String url = 'https://api.bimdata.io/cloud/' + cloudId + '/project/' + projectId + '/model/' + modelId + '/zone';
+        
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(url);
+        req.setMethod('GET');
+        req.setHeader('Content-Type', 'application/json');
+        req.setHeader('Accept', 'application/json');
+        req.setHeader('Authorization', 'Bearer ' + token);
+        
+        Http http = new Http();
+        HttpResponse res = http.send(req);
+        if (!(res.getStatusCode() >= 200 && res.getStatusCode() < 300)){
+            throw new BimdataApiException('FAILED - getZone. Status code: ' + res.getStatusCode() + ' '+ res.getBody());
+        }
+        List<Object> rawZones = (List<Object>) JSON.deserializeUntyped(res.getBody());
+        List<Map<String,Object>> zones = new List<Map<String,Object>>();
+        for(Object zone : rawZones){
+            zones.add((Map<String, Object>) zone);
+        }
+        return zones;
+    }
+
 
 }
