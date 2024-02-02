@@ -34,4 +34,26 @@ global with sharing class BIMDataViewerController {
     modelId = gicModel.modelId__c;
     viewerToken = getViewerToken();
   }
+
+  @RemoteAction
+  global static String createAnnotation(
+      String zoneId,
+      String description,
+      String x,
+      String y,
+      String z,
+      String color
+  ) {
+      GICAnnotation__c annotation = GICAnnotationUtil.create(zoneId, description, x,  y, z, color);
+      return '{"success": "true", "annotationId": "' + annotation.Id + '"}';
+  }
+
+  @RemoteAction
+  global static String getAnnotations(
+      String zoneId
+  ) {
+      List<GICAnnotation__c> annotations = GICAnnotationUtil.whereInZone(zoneId);
+      return JSON.serialize(GICAnnotationUtil.toMap(annotations));
+  }
+
 }

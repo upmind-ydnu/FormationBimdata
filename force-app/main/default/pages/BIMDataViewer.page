@@ -13,7 +13,18 @@
       const projectId = '{!projectId}';
       const modelId = '{!modelId}';
       const viewerToken = '{!viewerToken}'
-      let zoneUUID = '{!zoneUUID}';
+      const zoneUUID = '{!zoneUUID}';
+      const zoneId = '{!gicZone.Id}';
+
+
+      const vfRemote =  { 
+          manager: Visualforce.remoting.Manager, 
+          action:  { 
+            createAnnotation: '{!$RemoteAction.BIMDataViewerController.createAnnotation}',
+            getAnnotations: '{!$RemoteAction.BIMDataViewerController.getAnnotations}',
+          }
+        };
+
 
       let viewerZones;
       let api;
@@ -31,8 +42,12 @@
         ...bimdataViewerConfig
       });
 
-      bimdataViewer.registerPlugin(annotationPlugin);
+      const annotations = annotationmgr(zoneId, vfRemote);
+      bimdataViewer.registerPlugin(annotations.annotationPlugin);
       const viewerInstance = await bimdataViewer.mount("#viewer", customLayout);
+
+      annotations.refreshAnnotations(viewerInstance.$viewer);
+
 
       const viewer2d = viewerInstance.$viewer.globalContext.plugins.get('viewer2d')[0];
 
