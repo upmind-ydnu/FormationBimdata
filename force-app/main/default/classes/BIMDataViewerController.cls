@@ -12,10 +12,13 @@ global with sharing class BIMDataViewerController {
   }
   
   public BIMDataViewerController() {
+    String recordId = ApexPages.currentPage().getParameters().get('id').escapeHtml4();
+    GICModel__c gicModel =  GICModelUtil.find(recordId);
+
     BIMDataAPI api = BIMDataAPI.new_session();
-    cloudId = '25737';
-    projectId = '832106';
-    modelId = '1175967';
+    cloudId = gicModel.cloudId__c;
+    projectId = gicModel.projectId__c;
+    modelId = gicModel.modelId__c;
     viewerToken = getViewerToken();
   }
 }

@@ -43,3 +43,4 @@ $RECYCLE.BIN/
 **/__pycache__/
 **/.venv/
 **/venv/
+force-app/main/default/flexipages/LightningSales_UtilityBar.flexipage-meta.xml
