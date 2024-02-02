@@ -1,15 +1,10 @@
 <apex:page controller="BIMDataViewerController">
+  
+  <apex:includeScript value="{!URLFOR($Resource.annotation_js)}"/>
+  <apex:includeScript value="{!URLFOR($Resource.zone_helper_js)}"/>
+  <apex:includeScript value="{!URLFOR($Resource.bimdataviewer_js)}"/>
+  <apex:stylesheet value="{!URLFOR($Resource.bimdataviewer_css)}"/>
   <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: whitesmoke;
-      }
-      
-      button.bimdata-btn {
-        background-image: none;
-      }
     </style>  
     <script type="module">
       import makeBIMDataViewer from 'https://cdn.jsdelivr.net/npm/@bimdata/viewer@2.0.0-beta.90/dist/bimdata-viewer.esm.min.js';
@@ -19,153 +14,12 @@
       const modelId = '{!modelId}';
       const viewerToken = '{!viewerToken}'
       let zoneUUID = '{!zoneUUID}';
-      zoneUUID = '3wXhosKm99N8Q7p3fD23VO';
 
       let viewerZones;
       let api;
       let model;
       let structureData;
       let modelStoreys;
-
-      function uuidGroupedByStorey(node) {
-        const storeys = [];
-        // Recursive helper function
-        function traverse(pnode) {
-          if (pnode.type === 'storey') {
-            storeys.push({
-              uuid: pnode.uuid,
-              children: pnode.children.map((child) => child.uuid),
-            });
-          }
-          pnode.children.forEach((child) => traverse(child));
-        }
-
-        traverse(node);
-        return storeys;
-      }
-
-      function countUuidByStorey(storeys, uuids) {
-        const storeysInfo = [];
-
-        storeys.forEach((storey) => {
-          // Count how many UUIDs in the uuids are in the storey's children
-          const uuidCountInStorey = uuids.reduce(
-            (count, uuid) => count + storey.children.includes(uuid),
-            0,
-          );
-
-          if (uuidCountInStorey > 0) {
-            storeysInfo.push({
-              storeyUUID: storey.uuid,
-              uuidCountInStorey,
-            });
-          }
-        });
-
-        return storeysInfo;
-      }
-
-      function findObjectByUUID(objects, uuid) {
-        return objects.find((object) => object.uuid === uuid);
-      }
-
-      const uuidsOfZone = (viewerZones, zoneUUID) => {
-        const zoneToHighlight = findObjectByUUID(viewerZones, zoneUUID);
-        return zoneToHighlight.spaces.map((space) => space.uuid);
-      };
-
-      const isPointInPolygon = (point, polygon) => {
-        const { x, y } = point;
-
-        let inside = false;
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-          const { x: xi, y: yi } = polygon[i];
-          const { x: xj, y: yj } = polygon[j];
-
-          const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-          if (intersect) {
-            inside = !inside;
-          }
-        }
-        return inside;
-      };
-
-
-      const bimdataViewerConfig = {
-        ui: {
-          // style: {
-          //   backgroundColor: "FFFFFF",
-          // },
-          headerVisible: false,
-          windowManager: false,
-          version: false,
-          bimdataLogo: false,
-          contextMenu: false,
-          menuVisible: false,
-        },
-        plugins: {
-          alerts: true,
-          bcf: false,
-          bcfManager: false,
-          buildingMaker: false,
-          dwg: true,
-          "dwg-layer": true,
-          dxf: true,
-          equipment2d: false,
-          fullscreen: true,
-          gauge2d: false,
-          ged: true,
-          measure2d: false,
-          measure3d: false,
-          pdfAnnotations: false,
-          pdfExport: false,
-          pdf: false,
-          plan: {
-            help: false,
-            modelLoader: "hidden",
-          },
-          viewer3d: {
-            help: false,
-            modelLoader: 'hidden',
-            synchronization: false,
-          },
-          viewer2d: {
-            help: false,
-            modelLoader: 'hidden',
-            compass: false,
-          },        
-          panorama: true,
-          pointCloud: true,
-          pointCloudParameters: true,
-          projection: false,
-          properties: false,
-          search: false,
-          section: false,
-          smartview: false,
-          split: false,
-          "storey-selector": false,
-          structure: false,
-          "structure-properties": true,
-          "viewer2d-background": false,
-          "viewer3d-background": false,
-          "viewer2d-drawer": false,
-          "viewer2d-parameters": true,
-          "viewer2d-screenshot": false,
-
-          "viewer3d-parameters": true,
-          "window-split": true,
-        }
-      };
-
-      const customLayout = {
-          ratios: [30, 70],
-          children: [
-            "3d",
-            "2d"
-          ],
-        };
-
 
       const bimdataViewer = makeBIMDataViewer({
         api: {
@@ -176,6 +30,8 @@
         },
         ...bimdataViewerConfig
       });
+
+      bimdataViewer.registerPlugin(annotationPlugin);
       const viewerInstance = await bimdataViewer.mount("#viewer", customLayout);
 
       const viewer2d = viewerInstance.$viewer.globalContext.plugins.get('viewer2d')[0];

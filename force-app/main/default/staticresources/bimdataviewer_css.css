@@ -1,0 +1,68 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: whitesmoke;
+}
+
+.annotation {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translate(-50%, -100%);
+}
+.annotation__pin {
+  display: flex;
+  justify-content: center;
+}
+.annotation__pin:hover .annotation__name {
+  visibility: visible;
+}
+
+.annotation__name,
+.annotation__index,
+.annotation__delete {
+  position: absolute;
+  border-radius: 4px;
+}
+
+.annotation__name {
+  top: 28px;
+  min-width: 100px;
+  padding: calc(var(--spacing-unit) / 6);
+  text-align: center;
+  color: var(--color-white);
+  visibility: hidden;
+}
+
+.annotation__index {
+  background-color: var(--color-white);
+  top: calc(0px - (100% / 2));
+  left: calc(0px + (100% / 2) + calc(var(--spacing-unit) / 4));
+  padding: 0 6px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.annotation__delete {
+  background-color: var(--color-white);
+  top: calc(0px - (100% / 2) - calc(var(--spacing-unit) / 2));
+  left: calc(0px - (100% / 2) - calc(var(--spacing-unit) / 4));
+}
+.annotation__delete .safe-zone-inline {
+  position: absolute;
+  z-index: 1;
+  top: -7px;
+  right: 0;
+}
+.annotation__tooptip {
+  position: absolute;
+  z-index: 1;
+  top: 30px;
+}  button.bimdata-btn {
+  background-image: none;
+}
