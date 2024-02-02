@@ -14,6 +14,12 @@
     <script type="module">
       import makeBIMDataViewer from 'https://cdn.jsdelivr.net/npm/@bimdata/viewer@2.0.0-beta.90/dist/bimdata-viewer.esm.min.js';
 
+      const cloudId = '{!cloudId}';
+      const projectId = '{!projectId}';
+      const modelId = '{!modelId}';
+      const viewerToken = '{!viewerToken}'
+
+
       const bimdataViewerConfig = {
         ui: {
           // style: {
@@ -91,10 +97,10 @@
 
       const bimdataViewer = makeBIMDataViewer({
         api: {
-          modelIds: [15097],
-          cloudId: 10344,
-          projectId: 237466,
-          accessToken: "TAbdyPzoQeYgVSMe4GUKoCEfYctVhcwJ",
+          cloudId: cloudId,
+          projectId: projectId,
+          modelIds: [modelId],
+          accessToken: viewerToken,
         },
         ...bimdataViewerConfig
       });
